@@ -16,7 +16,7 @@ function persistentSortablejQTabs(tabsContainerIdParam, storagePagePropertyParam
     //optional parameter
     if ((storagePageProperty === undefined) || (storagePageProperty === null)) {
         if (document.title) {
-            storagePageProperty = document.title;
+            storagePageProperty = (document.title.replace(' ', '') + 'withid' + tabsContainerIdParam);
         }
         else {
             throw Error('storage page property needs to be specified, because page don\'t have title');
@@ -27,7 +27,7 @@ function persistentSortablejQTabs(tabsContainerIdParam, storagePagePropertyParam
     if (getTabsOrderValue()) {
         var ul = $('#' + tabsContainerId + ' ul'), newOrderLis = [];
 
-        $(getTabsOrderValue().split(',')).each(function (index, eachValue) {
+        $(getTabsOrderValue()).each(function (index, eachValue) {
             var foundLi = $(ul).find('#' + eachValue);
             if (foundLi.length === 1) {
                 foundLi.detach();
@@ -44,7 +44,7 @@ function persistentSortablejQTabs(tabsContainerIdParam, storagePagePropertyParam
         hide: { effect: 'blind', duration: 200 },
         show: { effect: 'blind', duration: 200 },
         activate: function (e, ui) {
-            localStorage.setItem(storagePageProperty + 'Last', JSON.stringify({ number: ui.newTab.index(), id: ui.newTab.prop('id') }));
+            saveLastObject({ id: ui.newTab.prop('id'), number: ui.newTab.index() });
         },
         active: getLastNumber()
     });
@@ -71,29 +71,30 @@ function persistentSortablejQTabs(tabsContainerIdParam, storagePagePropertyParam
             tabsArr.push(eachValue.replace('[]=', '_'));
         });
 
-        //saving tab order
-        localStorage.setItem(storagePageProperty + 'TabOrder', tabsArr);
+        saveTabsOrderValue(tabsArr);
 
         var lastObj = getLastObj();
         //update also selected tab number
         if (lastObj) {
-            var liObj = $('#' + lastObj.id);
-            var lis = $('#tabs ul li');
+            var liObj = document.getElementById(lastObj.id);
+            var lis = $('#' + tabsContainerId + '#tabs ul li');
 
             var liIndex = lis.toArray().indexOf(liObj);
 
-            localStorage.setItem(storagePageProperty + 'Last', JSON.stringify({ id: lastObj.id, number: liIndex }));
+            saveLastObject({ id: lastObj.id, number: liIndex });
         }
     }
+
+    //persistence sub part
 
     /**
     Return saved number from if object found in local storage or 0 as default.
     */
     function getLastNumber() {
-        var savedValue = getLastObj();
+        var savedLastValue = getLastObj();
 
-        if ((savedValue) && (savedValue.number)) {
-            return savedValue.number;
+        if ((savedLastValue) && (savedLastValue.number)) {
+            return savedLastValue.number;
         } else {
             return 0; //default number
         }
@@ -103,10 +104,68 @@ function persistentSortablejQTabs(tabsContainerIdParam, storagePagePropertyParam
     Return saved serialized object or null if not found in local storage.
     */
     function getLastObj() {
-        var savedValue = localStorage.getItem(storagePageProperty + 'Last');
+        var savedValue = getStorageObject();
 
-        if (savedValue) {
-            return JSON.parse(savedValue);
+        if ((savedValue) && (savedValue.last)) {
+            return savedValue.last;
+        }
+        else {
+            null;
+        }
+    }
+
+    /**
+    Persis object with data about last opened/clicked tab.
+    */
+    function saveLastObject(lastObject) {
+        var storedObj = getStorageObject();
+
+        //vanilla state
+        if (!storedObj) {
+            storedObj = {}; //wrapper obj
+        }
+        storedObj.last = lastObject;
+
+        saveStorageObject(storedObj);
+    }
+
+    /**
+    Return found tab order object or null if not found in localstorage.
+    */
+    function getTabsOrderValue() {
+        var savedValue = getStorageObject();
+
+        if ((savedValue) && (savedValue.tabsOrder)) {
+            return savedValue.tabsOrder;
+        }
+        else {
+            null;
+        }
+    }
+
+    /**
+    Persis object with data about tabs order.
+    */
+    function saveTabsOrderValue(tabsOrder) {
+        var storedObj = getStorageObject();
+
+        //vanilla state
+        if (!storedObj) {
+            storedObj = {}; //new wrapper obj
+        }
+        storedObj.tabsOrder = tabsOrder; //update
+
+        saveStorageObject(storedObj);
+    }
+
+    /**
+    Returns parsed object if found, null if not.
+    */
+    function getStorageObject() {
+        var savedObj = localStorage.getItem(storagePageProperty);
+
+        if (savedObj) {
+            return JSON.parse(savedObj);
         }
         else {
             return null;
@@ -114,16 +173,14 @@ function persistentSortablejQTabs(tabsContainerIdParam, storagePagePropertyParam
     }
 
     /**
-    Return found object or null if not found in localstorage.
+    Saves passed object to local storage.
     */
-    function getTabsOrderValue() {
-        var savedValue = localStorage.getItem(storagePageProperty + 'TabOrder');
-
-        if (savedValue) {
-            return savedValue;
+    function saveStorageObject(obj) {
+        if ((obj !== undefined) && (obj !== null)) {
+            localStorage.setItem(storagePageProperty, JSON.stringify(obj)); //serialize and save
         }
         else {
-            null;
+            throw Error('object to save not specified');
         }
     }
 }
