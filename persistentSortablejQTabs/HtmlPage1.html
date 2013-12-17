@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>jq tabs</title>
+    <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="tabs" class="tabs">
+        <ul>
+            <li id="tab_1"><a href="#tab_content_1">Tab 1</a></li>
+            <li id="tab_2"><a href="#tab_content_2">Tab 2</a></li>
+            <li id="tab_3"><a href="#tab_content_3">Tab 3</a></li>
+        </ul>
+        <div id="tab_content_1">
+            tab1
+        </div>
+        <div id="tab_content_2">
+            tab2
+        </div>
+        <div id="tab_content_3">
+            tab3
+        </div>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
+    <script src="Scripts/jqtabs.js"></script>
+    <script>
+        persistentSortablejQTabs('tabs');
+    </script>
+</body>
+</html>
